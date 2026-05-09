@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Student Enrollment</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <div class="container" style="max-width: 800px; margin-top: 30px">
+      <h3 class="text-center">Student Enrollment Form (JPDB)</h3>
+
+      <form id="studentForm" class="form-horizontal">
+        <div class="form-group">
+          <label class="col-sm-3 control-label">Roll No :</label>
+          <div class="col-sm-9">
+            <input
+              type="text"
+              id="rollNo"
+              class="form-control"
+              placeholder="Enter Roll No"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">Full Name :</label>
+          <div class="col-sm-9">
+            <input
+              type="text"
+              id="fullName"
+              class="form-control"
+              placeholder="Enter Full Name"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">Class :</label>
+          <div class="col-sm-9">
+            <select id="studentClass" class="form-control">
+              <option value="">Select Class</option>
+              <option value="10th">10th</option>
+              <option value="12th">12th</option>
+              <option value="Graduation">Graduation</option>
+              <option value="Post Graduation">Post Graduation</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">Birth Date :</label>
+          <div class="col-sm-9">
+            <input type="date" id="birthDate" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">Address :</label>
+          <div class="col-sm-9">
+            <textarea
+              id="address"
+              class="form-control"
+              placeholder="Enter Address"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-3 control-label">Enrollment Date :</label>
+          <div class="col-sm-9">
+            <input type="date" id="enrollDate" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-group text-center">
+          <div class="col-sm-offset-3 col-sm-9">
+            <button type="button" id="saveBtn" class="btn btn-primary" disabled>
+              Save
+            </button>
+            <button type="button" id="updateBtn" class="btn btn-info" disabled>
+              Update
+            </button>
+            <button
+              type="button"
+              id="resetBtn"
+              class="btn btn-default"
+              disabled
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
