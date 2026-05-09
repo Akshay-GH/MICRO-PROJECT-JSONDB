@@ -122,7 +122,7 @@ Active - initial working version with create, retrieve, and update flows.
 
 ## Release History
 
-- v1.0.0 - Initial release of the Student Enrollment form with JsonPowerDB integration. (Add your GitHub release link here)
+- v1.0.0 - Initial release of the Student Enrollment form with JsonPowerDB integration. (https://github.com/Akshay-GH/MICRO-PROJECT-JSONDB/releases/tag/v1.0.0)
 
 ## Sources
 
