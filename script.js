@@ -6,7 +6,7 @@ var jpdbToken = "90935235|-31949242719711704|90958404";
 var dbName = "SCHOOL-DB";
 var relName = "STUDENT-TABLE";
 
-// Helpers to build request strings
+// Helpers to build JPDB request payloads
 function createPUTRequest(connToken, jsonObj, dbName, relName) {
   var putRequest =
     "{\n" +
@@ -67,7 +67,7 @@ function createUPDATERequest(connToken, jsonObj, dbName, relName) {
   return updateRequest;
 }
 
-// Execute request using jQuery post
+// Execute JPDB request with jQuery POST and parse response JSON
 function executeJPDBRequest(reqString, endpoint, successCb, errorCb) {
   var url = jpdbBaseUrl + endpoint;
   $.post(url, reqString, function (result) {
@@ -86,7 +86,7 @@ function executeJPDBRequest(reqString, endpoint, successCb, errorCb) {
   });
 }
 
-// UI helpers
+// UI helpers to control form state
 function setFormStateForRollEntry() {
   $("#rollNo").prop("disabled", false).val("").focus();
   $("#fullName,#studentClass,#birthDate,#address,#enrollDate")
@@ -119,6 +119,7 @@ function setFormStateForExistingRecord() {
 }
 
 function validateFormFields() {
+  // Basic client-side validation before save/update
   var rollNo = $("#rollNo").val().trim();
   var fullName = $("#fullName").val().trim();
   var studentClass = $("#studentClass").val().trim();
@@ -165,6 +166,7 @@ function validateFormFields() {
 }
 
 function getFormData() {
+  // Collect form values into a record object
   return {
     rollNo: $("#rollNo").val().trim(),
     fullName: $("#fullName").val().trim(),
@@ -175,84 +177,27 @@ function getFormData() {
   };
 }
 
-function getFieldValue(obj, keys) {
-  for (var i = 0; i < keys.length; i++) {
-    if (obj && obj[keys[i]] !== undefined && obj[keys[i]] !== null) {
-      return obj[keys[i]];
-    }
-  }
-  return "";
-}
-
-function normalizeRecord(data, fallbackRollNo) {
-  return {
-    rollNo:
-      getFieldValue(data, [
-        "rollNo",
-        "Roll-No",
-        "roll-no",
-        "roll_no",
-        "RollNo",
-      ]) || fallbackRollNo,
-    fullName: getFieldValue(data, [
-      "fullName",
-      "Full-Name",
-      "full-name",
-      "full_name",
-      "FullName",
-      "name",
-    ]),
-    studentClass: getFieldValue(data, [
-      "studentClass",
-      "Class",
-      "class",
-      "stdClass",
-    ]),
-    birthDate: getFieldValue(data, [
-      "birthDate",
-      "Birth-Date",
-      "birth-date",
-      "birth_date",
-    ]),
-    address: getFieldValue(data, ["address", "Address"]),
-    enrollDate: getFieldValue(data, [
-      "enrollDate",
-      "Enrollment-Date",
-      "enrollment-date",
-      "enroll_date",
-      "enrollment_date",
-      "enrollmentDate",
-    ]),
-  };
-}
-
 function isRecordLike(data) {
-  return (
-    data &&
-    (data.rollNo !== undefined ||
-      data["Roll-No"] !== undefined ||
-      data["roll-no"] !== undefined ||
-      data["roll_no"] !== undefined ||
-      data.fullName !== undefined ||
-      data["Full-Name"] !== undefined)
-  );
+  // Minimal check to see if a response looks like a student record
+  return data && (data.rollNo !== undefined || data.fullName !== undefined);
 }
 
 function fillForm(data, rollNo) {
-  var normalized = normalizeRecord(data, rollNo);
-  $("#rollNo").val(normalized.rollNo || rollNo);
-  $("#fullName").val(normalized.fullName || "");
-  $("#studentClass").val(normalized.studentClass || "");
-  $("#birthDate").val(normalized.birthDate || "");
-  $("#address").val(normalized.address || "");
-  $("#enrollDate").val(normalized.enrollDate || "");
+  // Populate the form with data from the database
+  $("#rollNo").val(data.rollNo || rollNo);
+  $("#fullName").val(data.fullName || "");
+  $("#studentClass").val(data.studentClass || "");
+  $("#birthDate").val(data.birthDate || "");
+  $("#address").val(data.address || "");
+  $("#enrollDate").val(data.enrollDate || "");
 }
 
-
 $(document).ready(function () {
+  // Initial state: only Roll No is enabled for lookup
   setFormStateForRollEntry();
 
   $("#fullName").on("input", function () {
+    // Keep Full Name alphabetic to match validation rules
     var cleaned = $(this)
       .val()
       .replace(/[^A-Za-z ]/g, "");
@@ -269,6 +214,7 @@ $(document).ready(function () {
   });
 
   $("#rollNo").on("blur", function () {
+    // Lookup by Roll No on blur to decide between create vs update
     var rollNo = $("#rollNo").val().trim();
     if (!rollNo) {
       setFormStateForRollEntry();
@@ -281,41 +227,37 @@ $(document).ready(function () {
       getReq,
       jpdbIrlEndpoint,
       function (res) {
+        // Normalize response shape: res.data may be string, array, or object
         var record = null;
-        var recNo = null;
-        if (res && res.rec_no !== undefined && res.rec_no !== null) {
-          recNo = res.rec_no;
-        }
-        if (res && res.data) {
-          var dataObj = res.data;
-          if (typeof dataObj === "string") {
-            try {
-              dataObj = JSON.parse(dataObj);
-            } catch (e) {
-              dataObj = null;
-            }
-          }
-          if (Array.isArray(dataObj) && dataObj.length > 0) {
-            record = dataObj[0];
-          } else if (dataObj && dataObj.record) {
-            record = dataObj.record;
-            if (dataObj.rec_no !== undefined && dataObj.rec_no !== null) {
-              recNo = dataObj.rec_no;
-            }
-          } else if (isRecordLike(dataObj)) {
-            record = dataObj;
-          }
-          if (
-            recNo === null &&
-            dataObj &&
-            dataObj.rec_no !== undefined &&
-            dataObj.rec_no !== null
-          ) {
-            recNo = dataObj.rec_no;
+        var recNo = res && res.rec_no !== undefined ? res.rec_no : null;
+        var dataObj = res && res.data ? res.data : null;
+
+        if (typeof dataObj === "string") {
+          try {
+            dataObj = JSON.parse(dataObj);
+          } catch (e) {
+            dataObj = null;
           }
         }
 
+        if (Array.isArray(dataObj) && dataObj.length > 0) {
+          record = dataObj[0];
+        } else if (dataObj && dataObj.record) {
+          record = dataObj.record;
+        } else if (isRecordLike(dataObj)) {
+          record = dataObj;
+        }
+
+        if (
+          dataObj &&
+          dataObj.rec_no !== undefined &&
+          dataObj.rec_no !== null
+        ) {
+          recNo = dataObj.rec_no;
+        }
+
         if (record) {
+          // Existing record: fill form and enable update
           fillForm(record, rollNo);
           if (recNo !== null && recNo !== undefined) {
             localStorage.setItem("student_rec_no", String(recNo));
@@ -324,17 +266,19 @@ $(document).ready(function () {
           }
           setFormStateForExistingRecord();
         } else {
+          // New record: enable save
           localStorage.removeItem("student_rec_no");
           setFormStateForNewRecord();
         }
       },
-      function (err) {
+      function () {
         setFormStateForNewRecord();
       },
     );
   });
 
   $("#saveBtn").on("click", function () {
+    // Create new record
     if (!validateFormFields()) return;
     var obj = getFormData();
     var jsonStr = JSON.stringify(obj);
@@ -353,6 +297,7 @@ $(document).ready(function () {
   });
 
   $("#updateBtn").on("click", function () {
+    // Update existing record by JPDB internal record number
     if (!validateFormFields()) return;
     var recNo = localStorage.getItem("student_rec_no");
     var recNoNum = Number(recNo);
@@ -382,6 +327,7 @@ $(document).ready(function () {
   });
 
   $("#resetBtn").on("click", function () {
+    // Clear state and return to lookup mode
     localStorage.removeItem("student_rec_no");
     setFormStateForRollEntry();
   });
